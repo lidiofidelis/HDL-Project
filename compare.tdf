@@ -1,0 +1,129 @@
+INCLUDE "lpm_compare.inc";
+INCLUDE "decodificador.inc";
+
+SUBDESIGN compare(
+	q_rand[4..0], clk_50 	:	INPUT;
+	compare_all				: INPUT = vcc;
+	rstn	:	INPUT=VCC;
+	LSB[3..0]     : INPUT;
+	MSB[3..0]     : INPUT;
+	q				:	OUTPUT;
+	a2,b2,c2,d2,e2,f2,g2 : output;
+	a1,b1,c1,d1,e1,f1,g1 : output;
+	ena_9, ena_0  : input;
+	
+
+)
+
+VARIABLE	
+	comp	: lpm_compare WITH (LPM_WIDTH=8);
+	decod1		: decodificador;
+	decod2      : decodificador; 
+	hey      : jkff;
+	hallo    : jkff;
+	hey1		: jkff;
+	aux		: NODE;
+	hold_dig[13..0] : dff;
+BEGIN
+
+	hey1.clrn = rstn;
+	hey1.j = comp.aneb;
+	hey1.k = gnd;
+	hey1.clk = aux;
+	
+	hey.clrn = rstn and (not hey1.q);
+	hey.j = comp.aeb;
+	hey.k = gnd;
+	hey.clk = aux;
+	q = LCELL(hey.q);
+	
+--	comp.clock = clk_50;
+	comp.dataa[3..0] = LSB[3..0];
+	comp.dataa[7..4] = MSB[3..0];
+	comp.datab[4..0] = q_rand[4..0];
+	comp.datab[7..5] = 0;
+	
+	hallo.clrn = rstn and (not ena_9) and (not ena_0);
+	hallo.j = not compare_all;
+	hallo.k = gnd;
+	hallo.clk = clk_50;
+	aux = hallo.q;
+	
+
+	hold_dig[].prn = (not ena_9) and rstn;
+	hold_dig[].clk = aux;
+	decod1.q[] = LSB[];
+	decod2.q[] = MSB[];
+	
+	hold_dig[0].d = decod1.a;
+	hold_dig[1].d = decod1.b;
+	hold_dig[2].d = decod1.c;
+	hold_dig[3].d = decod1.d;
+	hold_dig[4].d = decod1.e;
+	hold_dig[5].d = decod1.f;
+	hold_dig[6].d = decod1.g;
+	
+	a1 = LCELL(hold_dig[0].q);
+	b1 = LCELL(hold_dig[1].q);
+	c1 = LCELL(hold_dig[2].q);
+	d1 = LCELL(hold_dig[3].q);
+	e1 = LCELL(hold_dig[4].q);
+	f1 = LCELL(hold_dig[5].q);
+	g1 = LCELL(hold_dig[6].q);
+	
+	hold_dig[7].d = decod2.a;
+	hold_dig[8].d = decod2.b;
+	hold_dig[9].d = decod2.c;
+	hold_dig[10].d = decod2.d;
+	hold_dig[11].d = decod2.e;
+	hold_dig[12].d = decod2.f;
+	hold_dig[13].d = decod2.g;
+	
+	a2 = LCELL(hold_dig[7].q);
+	b2 = LCELL(hold_dig[8].q);
+	c2 = LCELL(hold_dig[9].q);
+	d2 = LCELL(hold_dig[10].q);
+	e2 = LCELL(hold_dig[11].q);
+	f2 = LCELL(hold_dig[12].q);
+	g2 = LCELL(hold_dig[13].q);
+	
+--	if (aux and (not ena)) then
+--		decod.q[] = LSB[];
+--		dec.q[] = MSB[];
+--		
+--		a1 = decod.a; --a1 refere-se ao display da unidade
+--		b1 = decod.b;
+--		c1 = decod.c;
+--		d1 = decod.d;
+--		e1 = decod.e;
+--		f1 = decod.f;
+--		g1 = decod.g;
+--	
+--	
+--		a2 = dec.a; --a2 refere-se ao display da dezena
+--		b2 = dec.b;
+--		c2 = dec.c;
+--		d2 = dec.d;
+--		e2 = dec.e;
+--		f2 = dec.f;
+--		g2 = dec.g;
+--	else 
+--		a1 = VCC;
+--		b1 = VCC;
+--		c1 = VCC;
+--		d1 = VCC;
+--		e1 = VCC;
+--		f1 = VCC;
+--		g1 = VCC;
+--		
+--		a2 = VCC;
+--		b2 = VCC;
+--		c2 = VCC;
+--		d2 = VCC;
+--		e2 = VCC;
+--		f2 = VCC;
+--		g2 = VCC;
+--	end if;
+
+	
+END;	

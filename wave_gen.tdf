@@ -1,0 +1,23 @@
+include "lpm_counter.inc";
+
+subdesign wave_gen(
+			clock_in		:	input;
+			wave_form	:	output;
+			--reset       :	input=vcc;
+			
+)
+
+VARIABLE
+			register					:	tff;		
+			frequency_div			:	lpm_counter WITH (LPM_WIDTH=25, LPM_MODULUS=25000000);
+
+BEGIN
+			frequency_div.clock = clock_in;
+			register.clk = clock_in;
+			
+			register.t = frequency_div.cout;
+			wave_form = register.q;
+			--frequency_div.cnt_en = not reset;
+		
+		
+END;

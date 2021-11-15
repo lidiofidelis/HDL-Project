@@ -1,0 +1,59 @@
+INCLUDE "lpm_counter.inc";
+INCLUDE "lpm_add_sub.inc";
+INCLUDE "decodificador.inc";
+
+SUBDESIGN down_random
+(
+	ena, clk 		:	INPUT;
+	q[4..0] 			:	OUTPUT;
+	a1,b1,c1,d1,e1,f1,g1			:	OUTPUT;
+	a2,b2,c2,d2,e2,f2,g2			:	OUTPUT;
+	
+)
+
+VARIABLE	
+	down_counter_mod10	: 	lpm_counter WITH (LPM_WIDTH=4, LPM_MODULUS=10);
+	down_counter_mod2	: 	lpm_counter WITH (LPM_WIDTH=1, LPM_MODULUS=2);
+	adder	: lpm_add_sub WITH (LPM_WIDTH = 4);
+	decod1: decodificador;
+	decod2: decodificador;
+	
+BEGIN
+	down_counter_mod10.clock = clk and ena;
+	down_counter_mod2.clock = clk and ena;
+	
+
+	adder.dataa[] = down_counter_mod10.q[3..0];
+	
+	IF (down_counter_mod2.q[] == VCC) THEN
+		adder.datab[] = 10;
+	ELSE
+		adder.datab[] = 0;
+	END IF;
+	
+	
+	q[4] = LCELL (adder.cout);	
+	q[3] = LCELL(adder.result[3]);
+	q[2] = LCELL(adder.result[2]);
+	q[1] = LCELL(adder.result[1]);
+	q[0] = LCELL(adder.result[0]);
+
+decod1.q[] = down_counter_mod10.q[3..0];	
+	a1 = decod1.a;
+	b1 = decod1.b;
+	c1 = decod1.c;
+	d1 = decod1.d;
+	e1 = decod1.e;
+	f1 = decod1.f;
+	g1 = decod1.g;
+
+decod2.q[0] = down_counter_mod10.q[0];
+decod2.q[3..1] = GND;	
+	a2 = decod2.a;
+	b2 = decod2.b;
+	c2 = decod2.c;
+	d2 = decod2.d;
+	e2 = decod2.e;
+	f2 = decod2.f;
+	g2 = decod2.g;	
+END;

@@ -1,0 +1,118 @@
+INCLUDE "decodificador.inc";
+include "wave_gen.inc";
+include "wave_gen_pisca.inc";
+
+
+subdesign contador(
+		clk, enable : input;
+		led : output;
+		out_9, out_0 : output;
+		reset, start	: input = vcc;
+		a1,b1,c1,d1,e1,f1,g1 : OUTPUT;
+)
+
+VARIABLE
+		count[3..0]	:	dff;
+		decod		  : decodificador;
+		ss: MACHINE WITH STATES (s0, s1, s2);
+		hold : jkff;
+		aux: node;
+		is0: node;
+		q[3..0] : node;
+		clk_1s : node;
+		pisca : tff;
+		ena : node;
+		
+BEGIN
+		ena = LCELL(enable);
+		clk_1s = wave_gen(.clock_in = clk);
+		
+		count[].clk = clk_1s;
+		ss.reset = not reset;
+		ss.clk = clk_1s;
+		ss.ena =  not ena;
+		
+		hold.clk = clk;
+		hold.j = not start;
+		hold.k = GND;	
+		aux    = hold.q;
+		hold.clrn = reset;
+
+		is0 = LCELL(count[].q == 0);
+		
+		
+		case ss is
+			when s0		=>	
+			count[0].prn = GND;
+			count[1].clrn = GND;
+			count[2].clrn = GND;
+			count[3].prn = GND;
+			count[].d = 9;
+			pisca.clrn = GND;
+			out_9 = VCC;
+			out_0 = GND;
+
+			if (aux and not ena) then
+				ss = s1;
+			else	
+				ss = s0;
+			end if;
+			
+			when s1		=>	
+			
+			count[0].prn = VCC;
+			count[1].clrn = VCC;
+			count[2].clrn = VCC;
+			count[3].prn = VCC;
+			pisca.clrn = GND;
+			out_9 = GND;
+			out_0 = GND;
+			
+			if (not ena) then
+				if (is0) then
+				ss = s2;
+				count[].d = 0;
+				else
+				count[].d = count[].q - 1;
+				ss = s1;
+				end if;
+			else 
+				count[].d = count[].q;
+				ss = s1;
+			end if;
+			
+			when s2		=>	
+			
+			count[0].prn = VCC;
+			count[1].clrn = VCC;
+			count[2].clrn = VCC;
+			count[3].prn = VCC;
+			count[].d = 0;
+			out_9 = GND;
+			out_0 = VCC;
+			ss = s2;
+			pisca.clrn = VCC;	
+		end case;
+		
+--		q[] = count[].q;
+		q[3] = LCELL(count[3].q);
+		q[2] = LCELL(count[2].q);
+		q[1] = LCELL(count[1].q);
+		q[0] = LCELL(count[0].q);
+		
+		pisca.clk = wave_gen_pisca(.clock_in = clk);
+		pisca.t = is0;
+		led = pisca.q;
+		
+	decod.q[] = q[];	
+	a1 = decod.a;
+	b1 = decod.b;
+	c1 = decod.c;
+	d1 = decod.d;
+	e1 = decod.e;
+	f1 = decod.f;
+	g1 = decod.g;
+		
+		
+END;
+
